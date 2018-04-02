@@ -9,10 +9,6 @@ import (
 )
 
 type Object interface{}
-type Env struct {
-	Data   map[string]Object // 环境
-	OutEnv map[string]Object // 外部环境
-}
 
 // 全局变量/函数
 var EnvMap = map[string]Object{
@@ -66,11 +62,6 @@ var EnvMap = map[string]Object{
 	// 其余可自行添加
 }
 
-var Keywords = []string{
-	"def", // 定义函数
-	"set", // 设置参数
-}
-
 func IsAbc(v byte) bool { // 字母判断
 	if (v >= 'a' && v <= 'z') || (v >= 'A' && v <= 'Z') {
 		return true
@@ -91,14 +82,6 @@ func IsSym(v byte) bool { // 符号判断
 func IsNum(v byte) bool { // 数字判断
 	if v >= '0' && v <= '9' {
 		return true
-	}
-	return false
-}
-func IsKeywords(word string) bool { // 判断是不是关键词
-	for _, v := range Keywords {
-		if word == v {
-			return true
-		}
 	}
 	return false
 }
