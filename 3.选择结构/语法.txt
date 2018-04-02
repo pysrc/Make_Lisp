@@ -1,0 +1,10 @@
+选择结构:
+if 1>2: 
+	return 3
+else: 
+	return 4
+
+对应语法:(if (bool) true false)
+执行：(if (> 1 2) 3 4)
+输出：4
+
