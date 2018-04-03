@@ -1,0 +1,6 @@
+// ÕâÊÇ×¢ÊÍ
+(set a 12)
+(set b 34)
+(set c 54)
+(fn fc [x y] (+ x y))
+(if (> a b) (fc a b) (fc b c))
