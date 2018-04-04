@@ -75,8 +75,7 @@ var EnvMap = map[string]Object{
 		return math.Tan(v[0].(float64))
 	},
 	"out": func(v []Object) Object { // 输出函数
-		fmt.Println(v)
-		return nil
+		return v
 	},
 	// 其余可自行添加
 }
