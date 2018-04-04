@@ -65,6 +65,15 @@ var EnvMap = map[string]Object{
 	"!=": func(v []Object) Object {
 		return v[0].(float64) != v[1].(float64)
 	},
+	"&&": func(v []Object) Object {
+		return v[0].(bool) && v[1].(bool)
+	},
+	"||": func(v []Object) Object {
+		return v[0].(bool) || v[1].(bool)
+	},
+	"!": func(v []Object) Object {
+		return !v[0].(bool)
+	},
 	"sin": func(v []Object) Object {
 		return math.Sin(v[0].(float64))
 	},
@@ -267,7 +276,11 @@ func Eval(tree Object, env *map[string]Object) Object { // 计算表达式
 	case Object:
 		switch tree.(type) {
 		case string:
-			if k, ok := (*env)[tree.(string)]; ok {
+			str := tree.(string)
+			b, err := strconv.ParseBool(str) // 先转换为bool
+			if err == nil {
+				return b
+			} else if k, ok := (*env)[str]; ok {
 				//存在变量
 				return k
 			}
