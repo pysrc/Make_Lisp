@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -47,23 +46,23 @@ var EnvMap = map[string]Object{
 	"^": func(v []Object) Object { // 指数
 		return math.Pow(v[0].(float64), v[1].(float64))
 	},
-	">": func(v []Object) Object { // 指数
+	">": func(v []Object) Object {
 		return v[0].(float64) > v[1].(float64)
 	},
-	">=": func(v []Object) Object { // 指数
+	">=": func(v []Object) Object {
 		return v[0].(float64) >= v[1].(float64)
 	},
 
-	"<": func(v []Object) Object { // 指数
+	"<": func(v []Object) Object {
 		return v[0].(float64) < v[1].(float64)
 	},
-	"<=": func(v []Object) Object { // 指数
+	"<=": func(v []Object) Object {
 		return v[0].(float64) <= v[1].(float64)
 	},
-	"==": func(v []Object) Object { // 指数
+	"==": func(v []Object) Object {
 		return v[0].(float64) == v[1].(float64)
 	},
-	"!=": func(v []Object) Object { // 指数
+	"!=": func(v []Object) Object {
 		return v[0].(float64) != v[1].(float64)
 	},
 	"sin": func(v []Object) Object {
@@ -75,22 +74,15 @@ var EnvMap = map[string]Object{
 	"tan": func(v []Object) Object {
 		return math.Tan(v[0].(float64))
 	},
-	"print": func(v []Object) Object {
+	"out": func(v []Object) Object { // 输出函数
 		fmt.Println(v)
 		return nil
 	},
 	// 其余可自行添加
 }
 
-func IsAbc(v byte) bool { // 字母判断
-	if (v >= 'a' && v <= 'z') || (v >= 'A' && v <= 'Z') {
-		return true
-	}
-	return false
-}
-
-func IsSym(v byte) bool { // 符号判断
-	syms := "@#$%^&*()[]{}-+=/?|!`~<>"
+func IsSym(v byte) bool { // 括号判断
+	syms := "(){}[]"
 	for i := 0; i < len(syms); i++ {
 		if syms[i] == v {
 			return true
@@ -140,28 +132,21 @@ func (self *Code) Next() Object { // 下一个token
 		}
 		self.pos = i
 		tk, _ = strconv.ParseFloat(string(tmp), 64)
-	case IsSym(self.src[i]): // 读取字符
-		if self.src[i] == '(' || self.src[i] == '[' || self.src[i] == ')' || self.src[i] == ']' {
-			tmp = append(tmp, self.src[i])
-			i++
-		} else {
-			for i < len(self.src) && IsSym(self.src[i]) {
-				tmp = append(tmp, self.src[i])
-				i++
-			}
-		}
+	case IsSym(self.src[i]): // 括号判断
+		tmp = append(tmp, self.src[i])
+		i++
 		self.pos = i
 		tk = string(tmp)
-	case IsAbc(self.src[i]): // 读取字母（变量）
-		for i < len(self.src) && IsAbc(self.src[i]) {
-			tmp = append(tmp, self.src[i])
-			i++
-		}
-		self.pos = i
-		tk = string(tmp)
-	default:
+	case self.src[i] == ' ': // 空格
 		self.pos++
 		tk = self.Next()
+	default: // 变量||函数
+		for i < len(self.src) && self.src[i] != ' ' && !IsSym(self.src[i]) {
+			tmp = append(tmp, self.src[i])
+			i++
+		}
+		self.pos = i
+		tk = string(tmp)
 	}
 	self.tokens = append(self.tokens, tk)
 	return tk
@@ -292,15 +277,30 @@ func Eval(tree Object, env *map[string]Object) Object { // 计算表达式
 	}
 	return nil
 }
-func Pre(src string) string { // 预处理，替换注释
-	re, _ := regexp.Compile(`//.*?\n`)
-	res := re.ReplaceAllString(src, "\n")
-	return res
+func FindExpr(s string) string { // 找出字符串中的语句
+	var x, y int
+	for i := 0; i < len(s); i++ {
+		if s[i] == '(' {
+			x = i
+			break
+		}
+	}
+	for i := len(s) - 1; i > 0; i-- {
+		if s[i] == ')' {
+			y = i
+			break
+		}
+	}
+	if x < y { // 找到
+		return s[x:y]
+	} else {
+		return "" // 找不到
+	}
 }
 func ExeFile(cmd string) { // 执行文件
-	cmds := strings.Split(Pre(cmd), "\n") // 分离语句
+	cmds := strings.Split(cmd, "\n") // 分离语句
 	for _, j := range cmds {
-		pr := strings.Trim(j, " ")
+		pr := FindExpr(j) // 任何非表达式都是注释
 		if pr != "" {
 			c := Code{}
 			c.Init(pr)
@@ -323,6 +323,10 @@ func ExeIDLE() { // 解释执行
 		if cmd == "exit" {
 			return
 		} else {
+			cmd = FindExpr(cmd)
+			if cmd == "" {
+				return
+			}
 			c := Code{}
 			c.Init(cmd)
 			s := c.Read_Root()

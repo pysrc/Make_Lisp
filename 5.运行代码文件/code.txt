@@ -1,5 +1,4 @@
-// 这是注释内容
-(set a 12)
+﻿(set a 56)
 (set b 34)
 (set c 54)
 (fn fc [x y] (+ x y))
