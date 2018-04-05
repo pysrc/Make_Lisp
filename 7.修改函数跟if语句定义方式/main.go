@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -119,11 +120,21 @@ var EnvMap = map[string]Object{
 	"!=": func(v []Object) Object {
 		return v[0].(float64) != v[1].(float64)
 	},
-	"&&": func(v []Object) Object {
-		return v[0].(bool) && v[1].(bool)
+	"&&": func(v []Object) Object { // 与
+		for _, b := range v {
+			if !b.(bool) {
+				return false
+			}
+		}
+		return true
 	},
 	"||": func(v []Object) Object {
-		return v[0].(bool) || v[1].(bool)
+		for _, b := range v {
+			if b.(bool) {
+				return true
+			}
+		}
+		return false
 	},
 	"!": func(v []Object) Object {
 		return !v[0].(bool)
@@ -154,7 +165,10 @@ var EnvMap = map[string]Object{
 		return nil
 	},
 	"ret": func(v []Object) Object {
-		return v[0]
+		if len(v) == 1 {
+			return v[0]
+		}
+		return v
 	},
 	// 其余可自行添加
 }
@@ -280,6 +294,9 @@ func Eval(tree Object, env *EnvType) Object { // 计算表达式
 			return nil
 		}
 		// 取出操作符及其对应的函数
+		if reflect.TypeOf(v[0]).Name() != "string" {
+			return v
+		}
 		op := v[0].(string)
 		// fmt.Println("op:", op)
 		switch op {
