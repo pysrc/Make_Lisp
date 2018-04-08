@@ -18,9 +18,11 @@ S:
                 (ret 1)
             } 
             {
-                (+ 
-                    (fib (- n 1))
-                    (fib (- n 2))
+                (ret 
+                    (+ 
+                        (fib (- n 1))
+                        (fib (- n 2))
+                    )
                 )
             }
         )
@@ -34,7 +36,7 @@ S:
 (for 
     (<= i 10) 
     {
-        (out The (ret i) item is (fib i))
+        (out The (val i) item is (fib i))
         (= i (+ i 1))
     }
 )
